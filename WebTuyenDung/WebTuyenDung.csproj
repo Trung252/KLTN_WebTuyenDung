@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+		<PropertyGroup>
+				<TargetFramework>net7.0</TargetFramework>
+				<Nullable>enable</Nullable>
+		</PropertyGroup>
+
+		<ItemGroup>
+		  <Content Remove="DataSamples\CandidateData.json" />
+		  <Content Remove="DataSamples\EmployerData.json" />
+		  <Content Remove="DataSamples\EmployerDebtData.json" />
+		  <Content Remove="DataSamples\LocaleData.json" />
+		  <Content Remove="DataSamples\PostData.json" />
+		  <Content Remove="DataSamples\RecruimentNewsData.json" />
+		  <Content Remove="DataSamples\UserData.json" />
+		</ItemGroup>
+
+		<ItemGroup>
+				<PackageReference Include="FastEnum" Version="1.8.0" />
+				<PackageReference Include="Mapster" Version="7.3.0" />
+				<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
+				<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.5" />
+				<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.5">
+				  <PrivateAssets>all</PrivateAssets>
+				  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+				</PackageReference>
+				<PackageReference Include="Z.EntityFramework.Plus.EFCore" Version="7.21.1" />
+		</ItemGroup>
+
+		<ItemGroup>
+		  <EmbeddedResource Include="DataSamples\CandidateData.json">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  </EmbeddedResource>
+		  <EmbeddedResource Include="DataSamples\EmployerData.json">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  </EmbeddedResource>
+		  <EmbeddedResource Include="DataSamples\EmployerDebtData.json">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  </EmbeddedResource>
+		  <EmbeddedResource Include="DataSamples\LocaleData.json">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  </EmbeddedResource>
+		  <EmbeddedResource Include="DataSamples\PostData.json">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  </EmbeddedResource>
+		  <EmbeddedResource Include="DataSamples\RecruimentNewsData.json">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  </EmbeddedResource>
+		  <EmbeddedResource Include="DataSamples\UserData.json">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  </EmbeddedResource>
+		</ItemGroup>
+
+		<ItemGroup>
+		  <Folder Include="wwwroot\Files\CV\" />
+		</ItemGroup>
+
+</Project>

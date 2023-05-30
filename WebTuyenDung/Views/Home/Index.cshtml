@@ -1,0 +1,333 @@
+﻿@using WebTuyenDung.Constants;
+@using WebTuyenDung.Enums;
+@using WebTuyenDung.ViewModels.Page;
+@model HomePageViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@section css_Main {
+    <link rel="stylesheet" href="~/Assets/Client/css/home.css">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
+    <link href="/Assets/Shared/upload-file/upload-file.css" rel="stylesheet" />
+}
+
+@section scripts_Main {
+    <script src="~/Assets/Client/js/style.js"></script>
+    <script src="~/Assets/Client/js/searchkey.js"></script>
+    <script>
+        // Show apply form
+        __('#upload-cv, .upload__button--cancel, .upload--close, .main__upload').forEach((item) => {
+            item.addEventListener('click', () => {
+                _('.main__upload').classList.toggle('show');
+            })
+        })
+
+        _('.main__upload--post').addEventListener('click', (e) => {
+            e.stopPropagation();
+        })
+    </script>
+    <script>
+        $('.main__upload--post').click(e => {
+            e.stopPropagation()
+        })
+    </script>
+
+    <script>
+        $('.btn-default.edit-by-upload').click(function () {
+            const cvId = $(this).data('id')
+
+            $('.main__upload').toggleClass('show')
+        })
+
+        $('.btn-default.delete-cv').click(function () {
+
+            const deleteButton = $(this)
+
+            const cvId = deleteButton.data('id')
+
+            $.ajax({
+                url: `/api/cv/${cvId}`,
+                method: 'DELETE',
+                success: () => {
+                    deleteButton.parent().parent().parent().remove()
+                }
+            })
+        })
+
+        const onUploadCVFormSubmit = (e) => {
+            e.preventDefault();
+
+            let tempData = $(uploadForm).serializeArray();
+
+            if (!tempData[1].value) {
+                $('#upload-form-error').text('You must input name for cv')
+                return
+            }
+            if (fileInput.files.length === 0) {
+                $(cannotUploadMessage).html(ERROR_MESSAGE_TEMPLATE.replace('{0}', 'Please select a file first'))
+                return
+            }
+
+            let videoInput = document.getElementById('input-tag')
+
+            let formData = new FormData();
+            formData.append('__RequestVerificationToken', tempData[0].value)
+            formData.append('name', tempData[1].value);
+            formData.append('cv', fileInput.files[0]);
+
+            if (videoInput.files[0]) {
+                formData.append('video', videoInput.files[0]);
+            }
+
+            $.ajax({
+                url: '/cv/upload',
+                method: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: () => {
+                    _('.main__upload').classList.toggle('show');
+                    alert('Upload cv thành công')
+                },
+                error: (response) => {
+                    $('#upload-form-error').text(JSON.parse(response.responseText)['Name'][0])
+                }
+            })
+
+            const videoSrc = document.querySelector("#video-source");
+            const videoTag = document.querySelector("#video-tag");
+            const inputTag = document.querySelector("#input-tag");
+
+            inputTag.addEventListener('change', readVideo)
+
+            function readVideo(event) {
+                if (event.target.files && event.target.files[0] && event.target.files[0].size > (250 * 1024 * 1024)) {
+                    $('#video-error').css({ display: 'inline' })
+                    inputTag.files = []
+                    return
+                }
+                if (event.target.files && event.target.files[0]) {
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        console.log('loaded')
+                        videoSrc.src = e.target.result
+                        videoTag.load()
+                    }.bind(this)
+
+                    reader.readAsDataURL(event.target.files[0]);
+                }
+            }
+        }
+    </script>
+    <script src="/Assets/Shared/upload-file/upload-file.js"></script>
+}
+
+<div class="main__fixed bg-img"></div>
+<div class="main__search">
+    <div class="main__search--wrapper grid wide">
+        <h1 class="main__search--title">
+            Tìm việc làm cho sinh viên ngành Công nghệ thông tin
+        </h1>
+        @{
+            //Html.RenderAction("_ViewSearch", "Home");
+        }
+    </div>
+</div>
+
+<div class="main__cv">
+    <div class="main__cv--wrapper grid wide">
+        <div class="main__cv--content row">
+            <div class="cv__item col l-6 m-12 c-12">
+                <div class="cv__item--wrapper">
+                    <div class="cv__item--description">
+                        <h2>Tạo CV</h2>
+                        <h3>Giúp bạn tạo CV xin việc trực tiếp trên hệ thống nhanh chóng, tiện lợi hơn bao giờ hết...</h3>
+                        <a class="cv__item--link button--link" id="create-cv" href="/cv/create">
+                            <span><i class="fas fa-plus"></i></span>
+                            Tạo CV ngay
+                        </a>
+                    </div>
+                    <div class="cv__item--img">
+                        <img class="full_width" src="~/Assets/Client/img/create_cv.png" alt="Tạo mới CV">
+                    </div>
+                </div>
+            </div>
+            <div class="cv__item col l-6 m-12 c-12">
+                <div class="cv__item--wrapper">
+                    <div class="cv__item--description">
+                        <h2>Sử dụng CV sẵn có</h2>
+                        <h3>Nếu bạn đã có CV của riêng mình, hãy tải lên cho nhà tuyển dụng nhìn thấy</h3>
+                        @if (User.Identity!.IsAuthenticated && User.IsInRole(AuthorizationConstants.CANDIDATE_ROLE))
+                        {
+                            <a href="javascript:void(0)" class="cv__item--link button--link" id="upload-cv">
+                                <span><i class="fas fa-upload"></i></span>
+                                Upload CV ngay
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="/authentication/sign-in" class="cv__item--link button--link">
+                                <span><i class="fas fa-upload"></i></span>
+                                Upload CV ngay
+                            </a>
+                        }
+                    </div>
+                    <div class="cv__item--img">
+                        <img class="full_width" src="~/Assets/Client/img/upload_cv.png" alt="Upload CV của bạn">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main__recruitment">
+    <div class="main__recruitment--wrapper grid wide">
+        <h1 class="main__recruitment--title main__item--title">
+            Tin tuyển dụng mới nhất
+        </h1>
+        <div class="main__recruitment--content row">
+            @foreach (var item in Model.TopRecruimentNews)
+            {
+                <div class="recruitment__item col l-4 m-6 c-12">
+                    <div class="recruitment__item--wrapper">
+                        <div class="recruitment__item--img">
+                            <img class="full_width" src="@item.Employer.Avatar" alt="Logo nhà tuyển dụng">
+                            <div class="recruitment__item--time">@item.WorkingSite</div>
+                        </div>
+                        <div class="recruitment__item--name">
+                            <h2 class="recruitment__name--title">
+                                <a href="/recruiment-news/@item.Id" class="recruitment__name--link text-line-1">
+                                    @item.JobName
+                                </a>
+                            </h2>
+                            <div class="recruitment__name--employer">
+                                <a href="/employers/@item.Employer.Id" class="recruitment__employer--link text-line-1">
+                                    <span class="recruitment__icon"><i class="far fa-building"></i></span>
+                                    <span class="">@item.Employer.Name</span>
+                                </a>
+                            </div>
+                            <p class="recruitment__salary">
+                                <span class="recruitment__icon"><i class="fas fa-money-check-alt"></i></span>
+                                <span>@item.GetSalaryRepresentation()</span>
+                            </p>
+                            <p class="recruitment__address">
+                                <span class="recruitment__icon"><i class="fas fa-map-marked"></i></span>
+                                <span>@item.JobType.GetRepresentation()</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="main__blog">
+    <div class="main__blog--wrapper grid wide">
+        <h1 class="main__blog--title main__item--title">
+            Bài viết cho bạn
+        </h1>
+        <div class="main__blog--content row">
+            @foreach (var item in Model.TopPosts)
+            {
+                <div class="blog__item col l-4">
+                    <div class="blog__item--wrapper">
+                        <a href="/posts/@item.Id" class="blog__item--link">
+                            <div class="blog__item--img">
+                                <img class="full_width" src="@item.Image" alt="@item.Title">
+                            </div>
+                            <div class="blog__item--content">
+                                <div class="blog__item--description">
+                                    <h3 class="blog__item--name text-line-2">
+                                        @item.Title
+                                    </h3>
+                                    <p class="blog__item--data text-line-2">
+                                        <strong>@item.Author</strong>
+                                    </p>
+                                    <p class="blog__item--see">Xem thêm>></p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@if (User.Identity!.IsAuthenticated && User.IsInRole(AuthorizationConstants.CANDIDATE_ROLE))
+{
+    <div class="main__upload">
+        <form class="main__upload--post" id="upload-cv-form" data-is-upload="true">
+            @Html.AntiForgeryToken()
+            <div class="main__upload--title">
+                <h4>Upload CV của bạn</h4>
+                <div class="upload--close"></div>
+            </div>
+            <span id="upload-form-error" class="text-danger"></span>
+            @*#                        _oo0oo_
+        #                       o8888888o
+        #                       88" . "88
+        #                       (| -_- |)
+        #                       0\  =  /0
+        #                     ___/`---'\___
+        #                   .' \|     |// '.
+        #                  / \|||  :  |||// \
+        #                 / _||||| -:- |||||- \
+        #                |   | \\  -  /// |   |
+        #                | \_|  ''\---/''  |_/ |
+        #                \  .-\__  '-'  ___/-. /
+        #              ___'. .'  /--.--\  `. .'___
+        #           ."" '<  `.___\_<|>_/___.' >' "".
+        #          | | :  `- \`.;`\ _ /`;.`/ - ` : | |
+        #          \  \ `_.   \_ __\ /__ _/   .-` /  /
+        #      =====`-.____`.___ \_____/___.-`___.-'=====
+        #                        `=---='*@
+
+            <form class="form-container">
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Nhập tên CV của bạn" aria-controls="selection-datatable"
+                       id="cvName"
+                       name="Name" />
+                <div class="drag-file-area">
+                    <span class="material-icons-outlined upload-icon"> file_upload </span>
+                    <h3 class="dynamic-message"> Drag & drop any file here </h3>
+                    <label class="label">
+                        or
+                        <span class="browse-files">
+                            <input type="file" name="CV" class="default-file-input" />
+                            <span class="browse-files-text">browse file</span>
+                            <span>from device</span>
+                        </span>
+                    </label>
+                </div>
+                <span class="cannot-upload-message">
+                    <span class="material-icons-outlined">error</span> Please select a file first
+                    <span class="material-icons-outlined cancel-alert-button">cancel</span>
+                </span>
+                <div class="file-block">
+                    <div class="file-info">
+                        <span class="material-icons-outlined file-icon">description</span>
+                        <span class="file-name"> </span> |
+                        <span class="file-size">  </span>
+                    </div>
+                    <span class="material-icons remove-file-icon">delete</span>
+                    <div class="progress-bar"> </div>
+                </div>
+                <h4>Upload video clip của bạn</h4>
+                <input type="file" accept="video/*" id="input-tag" />
+                <hr>
+                <video controls id="video-tag">
+                    <source id="video-source" src="splashVideo">
+                    Your browser does not support HTML5 video
+                </video>
+                <span class="text-danger" style="display: none" id="video-error">Video Không được lớn hơn 250MB</span>
+                <button type="submit" class="upload-button"> Upload </button>
+            </form>
+        </form>
+
+    </div>
+}

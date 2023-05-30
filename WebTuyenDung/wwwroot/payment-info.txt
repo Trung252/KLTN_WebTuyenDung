@@ -1,0 +1,3 @@
+﻿Nếu bạn đăng nhập với tư cách là Nhà tuyển dụng thì bạn phải tuân thủ quy tắc:
++ 1 tin tuyển dụng ứng với 10.000đ 
++ và sau 1 khoảng thời gian nếu bạn không thanh toán thì tài khoản của bạn sẽ bị khóa

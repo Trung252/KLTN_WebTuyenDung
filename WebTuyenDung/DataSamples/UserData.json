@@ -1,0 +1,9 @@
+[
+    {
+        "id": 1,
+        "username": "admin@gmail.com",
+        "passwordHashed": "1CF58803332D6154476FE4D4710F26F1569196FF2097F677A01189B1A7DACAFF",
+        "name": "Admin",
+        "role": 2
+    }
+]

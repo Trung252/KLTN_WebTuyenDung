@@ -1,0 +1,282 @@
+﻿@using WebTuyenDung.Constants;
+@using WebTuyenDung.Enums;
+@using WebTuyenDung.Helper;
+@using WebTuyenDung.ViewModels.User;
+@model FullDetailRecruimentNewsViewModel
+
+@{
+    ViewBag.Title = Model.JobName + " - " + Model.Employer.Name;
+}
+
+<style>
+    textarea {
+        resize: none
+    }
+
+    #cv-type-radio-online-content{
+        display: none;
+        margin: 10px 0 10px 10px;
+    }
+</style>
+
+@section css_Main {
+    <link rel="stylesheet" href="~/Assets/Client/css/recruiment-news.css">
+}
+
+@section scripts_Main {
+    <script src="~/Assets/Client/js/style.js"></script>
+    <script src="~/Assets/Client/js/searchkey.js"></script>
+    <script src="~/Assets/Client/js/recruiment-news.js"></script>
+    <script>
+        $('#not-logged-in-apply-button').click(() => {
+            const path = location.pathname
+            const encodedPath = encodeURIComponent(path)
+
+            const signInUrl = `/authentication/sign-in?ReturnUrl=${encodedPath}`
+            location.href = signInUrl
+        })
+
+        function getFormData(form) {
+            const data = form.serializeArray()
+
+            const formData = new FormData()
+
+            for (const keyValue of data) {
+                formData.append(keyValue.name, keyValue.value)
+            }
+
+            return formData
+        }
+
+        $('.employer__apply--save').submit(function() {
+
+            const form = $(this)
+
+            const formData = getFormData(form)
+
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: () => {
+                    const isSaveAction = formData.get('IsSaveAction') === 'true'
+
+                    $('.apply__save--button.button--link > span').text(isSaveAction ? 'Bỏ lưu' : 'Lưu tin')
+
+                    form.children('input[name=IsSaveAction]').val(!isSaveAction)
+                }
+            })
+
+            return false
+        })
+    </script>
+
+    @if (TempData["popup-success"] != null)
+    {
+        <script>
+            $(document).ready(() => {
+                alert('Ứng tuyển thành công')
+            })
+        </script>
+    }
+    @if (TempData["popup-error"] != null)
+    {
+        <script>
+            $(document).ready(() => {
+                alert('Bạn đã ứng tuyển công việc này rồi, vui lòng theo dõi kết quả')
+            })
+        </script>
+    }
+}
+
+<div class="main__fixed bg-img"></div>
+<div class="main__search">
+    <div class="main__search--wrapper grid wide">
+        @*@{
+        Html.RenderAction("_ViewSearch", "Home");
+        }*@
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main__employer">
+    <div class="main__employer--wrapper grid wide">
+        <div class="main__employer--info">
+            <div class="employer__info--img">
+                <img src="@Model.Employer.Avatar" alt="" class="full_width">
+            </div>
+            <div class="employer__info--recruitment c-flex">
+                <h1>@Model.JobName</h1>
+                <div class="employer__info--link">
+                    <a href="/employers/@Model.Employer.Id">
+                        <i class="far fa-building"></i>
+                        @Model.Employer.Name
+                    </a>
+                </div>
+                <div class="employer__info--deadline">
+                    <i class="fa-regular fa-clock"></i>
+                    Hạn nộp: @(Model.Deadline?.GetApplicationTimeRepresentation() ?? "Vô thời hạn")
+                </div>
+            </div>
+            <div class="employer__info--apply">
+                @if (!Model.Deadline.HasValue || Model.Deadline.Value > DateTimeHelper.Today)
+                {
+                    <div class="employer__apply--cv">
+                        @if (User.IsInRole(AuthorizationConstants.CANDIDATE_ROLE))
+                        {
+                            <button class="apply__cv--button button--link">Ứng tuyển</button>
+                        }
+                        else
+                        {
+                            <button class="apply__cv--button button--link" id="not-logged-in-apply-button">Ứng tuyển</button>
+                        }
+                    </div>
+
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        <form class="employer__apply--save" action="/api/recruiment-news/save/@Model.Id" method="post">
+                            <input type="hidden" value="@Model.Employer.Id" name="EmployerId" />
+                            <input type="hidden" value="@Model.Employer.Name" name="EmployerName" />
+                            <input type="hidden" value="@Model.Employer.Avatar" name="EmployerAvatar" />
+                            @Html.HiddenFor(e => e.JobName)
+                            @Html.HiddenFor(e => e.Salary)
+                            @Html.HiddenFor(e => e.JobType)
+                            @Html.HiddenFor(e => e.WorkingSite)
+
+                            @if (Model.IsSaved)
+                            {
+                                <input type="hidden" value="false" name="IsSaveAction" />
+                            }
+                            else
+                            {
+                                <input type="hidden" value="true" name="IsSaveAction" />
+                            }
+
+                            <button class="apply__save--button button--link">
+                                <i class="fa-solid fa-heart"></i>
+                                @if (Model.IsSaved)
+                                {
+                                    <span>Bỏ lưu</span>
+                                }
+                                else
+                                {
+                                    <span>Lưu tin</span>
+                                }
+                            </button>
+                        </form>
+                    }
+                }
+                else
+                {
+                    <div class="employer__apply--cv">
+                        Hết hạn ứng tuyển
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="main__employer--content row">
+            <div class="col c-4">
+                <div class="employer__content--company">
+                    <h2 class="employer--title">Nhà tuyển dụng: </h2>
+                    <ul class="content__company--list">
+                        <li>
+                            <a href="/employers/@Model.Employer.Id">
+                                <i class="fa-solid fa-building"></i>
+                                <strong>@Model.Employer.Name</strong>
+                            </a>
+                            <p>@Model.Employer.Description</p>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-user-group"></i>
+                            <strong>Quy mô: </strong><span>@Model.Employer.Size</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-map-location"></i>
+                            <strong>Địa chỉ: </strong><span>@Model.Employer.Address</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col c-8">
+                <h1 class="employer__content--title employer--title">Chi tiết công việc</h1>
+                <div class="employer__content--info">
+                    <h3 class="content__info--title">1. Thông tin tuyển dụng</h3>
+                    <ul class="content__info--list">
+                        <li>Mức lương: @Model.Salary</li>
+                        <li>Hình thức làm việc: @Model.JobType.GetRepresentation()</li>
+                        <li>Giới tính: @(Model.Gender?.GetRepresentation() ?? "Không yêu cầu")</li>
+                        <li>Số lượng tuyển: @Model.NumberOfCandidates</li>
+                        <li>
+                            Địa điểm làm việc:
+                            <p>- Khu vực: @Model.WorkingSite</p>
+                            <p>- @Model.WorkingAddress</p>
+                        </li>
+                    </ul>
+                    <h3 class="content__info--title">2. Mô tả công việc</h3>
+                    <div style="padding-left: 20px">
+                        <p>@Html.Raw(Model.JobDescription)</p>
+                    </div>
+                    <h3 class="content__info--title">3. Yêu cầu ứng viên</h3>
+                    <div style="padding-left: 20px">
+                        <p>
+                            @Html.Raw(Model.JobRequirements)
+                        </p>
+                    </div>
+                    <h3 class="content__info--title">4. Kỹ năng liên quan</h3>
+                    <div style="padding-left: 20px">
+                        <p>
+                            @Html.Raw(Model.RelativeSkills)
+                        </p>
+                    </div>
+                    <h3 class="content__info--title">5. Quyền lợi</h3>
+                    <div style="padding-left: 20px">
+                        <p>
+                            @Html.Raw(Model.Benefit)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main__apply">
+    <form action="/recruiment-news/apply/@Model.Id" method="post" class="main__apply--post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div class="main__apply--title">
+            <h4>Ứng tuyển <span>@Model.JobName</span></h4>
+            <div class="apply--close"></div>
+        </div>
+        <div class="main__apply--content">
+            <div class="col-md-12">
+                <input type="radio" class="form-check-input" id="cv-type-radio-online" name="cv-type" value="online">
+                <label for="cv-type-radio-online" class="form-label">Sử dụng CV online</label>
+            </div>
+            <div class="col-md-10">
+                <div id="cv-type-radio-online-content"></div>
+            </div>
+            <div class="col-md-12">
+                <input type="radio" class="form-check-input" id="cv-type-radio-upload" name="cv-type" value="upload">
+                <label for="cv-type-radio-upload" class="form-label">Tải CV từ máy tính</label>
+                <div id="cv-type-radio-upload-content" style="display: none">
+                    <p>Choose file</p>
+                    <input type="file" name="CV" />
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="main__apply--note">
+                    <h4>Lời nhắn:</h4>
+                    <textarea name="letter" id="letter" rows="3" placeholder="Bạn có thể nêu mong muốn, lý do lựa chọn công ty này nhằm gây ấn tượng với nhà tuyển dụng..."></textarea>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="main__apply--button">
+                    <button class="apply__button--cancel">Bỏ qua</button>
+                    <button class="apply__button--submit" type="submit">Nộp CV</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
